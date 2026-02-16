@@ -83,7 +83,7 @@ export class AuthService {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
     });
     // 3. Repository
-    const data = await refreshTokensRepository.upsertToken({
+    await refreshTokensRepository.upsertToken({
       userId,
       refreshToken,
     });
