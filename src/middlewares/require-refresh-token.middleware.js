@@ -1,9 +1,15 @@
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { REFRESH_TOKEN_SECRET } from "../constants/env.constant.js";
+
 import { HTTP_STATUS } from "../constants/http-status.constant.js";
 import { MESSAGES } from "../constants/message.constant.js";
-import { REFRESH_TOKEN_SECRET } from "../constants/env.constant.js";
-import { prisma } from "../utils/prisma.util.js";
+
+import { UsersRepository } from "../repositories/users.repository.js";
+import { RefreshTokensRepository } from "../repositories/refresh-tokens.repository.js";
+
+const usersRepository = new UsersRepository();
+const refreshTokensRepository = new RefreshTokensRepository();
 
 export const requireRefreshToken = async (req, res, next) => {
   try {
@@ -57,9 +63,8 @@ export const requireRefreshToken = async (req, res, next) => {
     // 6. RefreshToken이 유효한지 검증
     // 6-1. DB에서 RefreshToken을 조회
     const { userId } = payload;
-    const existingRefreshToken = await prisma.refreshToken.findUnique({
-      where: { userId: userId },
-    });
+    const existingRefreshToken =
+      await refreshTokensRepository.findTokenByUserId(userId);
     // 6-2. DB에 있다면 해당 RefreshToken과 비교
     const isValidRefreshToken =
       existingRefreshToken?.refreshToken &&
@@ -73,10 +78,7 @@ export const requireRefreshToken = async (req, res, next) => {
     }
 
     // 7. Payload에 담긴 사용자 ID와 일치하는 사용자가 있는지?
-    const user = await prisma.user.findUnique({
-      where: { userId: userId },
-      omit: { password: true },
-    });
+    const user = await usersRepository.readUserByUserId(userId);
     // 7-1. 사용자가 없다면?
     if (!user) {
       return res.status(HTTP_STATUS.UNAUTHORIZED).json({

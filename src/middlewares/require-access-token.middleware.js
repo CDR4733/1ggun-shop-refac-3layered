@@ -1,8 +1,12 @@
 import jwt from "jsonwebtoken";
+import { ACCESS_TOKEN_SECRET } from "../constants/env.constant.js";
+
 import { HTTP_STATUS } from "../constants/http-status.constant.js";
 import { MESSAGES } from "../constants/message.constant.js";
-import { ACCESS_TOKEN_SECRET } from "../constants/env.constant.js";
-import { prisma } from "../utils/prisma.util.js";
+
+import { UsersRepository } from "../repositories/users.repository.js";
+
+const usersRepository = new UsersRepository();
 
 export const requireAccessToken = async (req, res, next) => {
   try {
@@ -55,10 +59,7 @@ export const requireAccessToken = async (req, res, next) => {
     }
     // 6. Payload에 담긴 사용자 ID와 일치하는 사용자가 있는지?
     const { userId } = payload;
-    const user = await prisma.user.findUnique({
-      where: { userId: userId },
-      omit: { password: true },
-    });
+    const user = await usersRepository.readUserByUserId(userId);
     // 6-1. 사용자가 없다면?
     if (!user) {
       return res.status(HTTP_STATUS.UNAUTHORIZED).json({

@@ -1,9 +1,11 @@
 import express from "express";
 import "./utils/prisma.util.js";
-import { SERVER_PORT } from "./constants/env.constant.js";
-import { errorHandler } from "./middlewares/error-handler.middleware.js";
+
 import { HTTP_STATUS } from "./constants/http-status.constant.js";
+import { SERVER_PORT } from "./constants/env.constant.js";
+
 import { apiRouter } from "./routers/index.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
 
 // express 필수 세트
 const app = express();
